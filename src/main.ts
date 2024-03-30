@@ -1,14 +1,10 @@
 import express from 'express';
 import filters from './routes/filters';
+// import { validateInput } from './validators/formValidator';
 const app = express();
+
 const PORT = 3000;
-
-// app.get('/', (req, res) => {
-//     res.send('Hello, TypeScript with Express!');
-// });
-
-app.use(express.json());
-app.use('/', filters);
+app.get('/', filters);
 
 app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
