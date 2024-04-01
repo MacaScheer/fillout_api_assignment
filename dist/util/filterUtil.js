@@ -1,57 +1,73 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.filterQuestions = exports.getFilterObjects = void 0;
-// import { FilterConditionTypes } from "../models/FilterConditionTypes";
-// import { ServerResponse } from "../models/serverResponse";
-// let testDate = new Date(Date.parse("2024-02-22T05:01:47.691Z"));
-// testDate.toDateString();
-// const filter1: Filter = {
-//     id: 'birthdayId',
-//     condition: 'greater_than',
-//     value: "2024-02-22T05:01:47.691Z",
-// }
-// const filter2: Filter = {
-//     id: 'nameId',
-//     condition: 'equals',
-//     value: "Timmy",
-// }
-const getFilterObjects = (paramValues) => {
-    const filterArray = new Array();
+exports.filterQuestions = exports.getFilterTypes = exports.getFilterClausesArray = exports.separateFilterCluses = exports.getSingleFilterClause = void 0;
+const filter_1 = require("../models/filter");
+const serverResponse_1 = require("../models/serverResponse");
+const getSingleFilterClause = (filterString) => {
+    return filterString.slice(1, filterString.indexOf('}'));
+};
+exports.getSingleFilterClause = getSingleFilterClause;
+const separateFilterCluses = (paramString) => {
+    let filterArr = new Array();
+    let i = 0;
+    while (i < paramString.length - 1) {
+        let char = paramString[i];
+        if (char === '{') {
+            let filterString = (0, exports.getSingleFilterClause)(paramString.slice(i, paramString.length));
+            filterArr.push(filterString);
+            i += filterString.length;
+        }
+        else {
+            i++;
+        }
+    }
+    return filterArr;
+};
+exports.separateFilterCluses = separateFilterCluses;
+const getFilterClausesArray = (paramValues) => {
+    let filterClauses = new Array();
     for (let value of paramValues) {
-        const paramArrKeyVal = value.split(',');
-        let filterObject = { id: '', condition: '', value: '' };
+        for (let clause of (0, exports.separateFilterCluses)(value)) {
+            filterClauses.push(clause);
+        }
+    }
+    return filterClauses;
+};
+exports.getFilterClausesArray = getFilterClausesArray;
+const getFilterTypes = (paramValues) => {
+    const filterTypeArray = new Array();
+    const filterStringArray = (0, exports.getFilterClausesArray)(paramValues);
+    for (let filterString of filterStringArray) {
+        const filter = (0, filter_1.createEmptyFilter)();
+        const filterKeyValues = filterString.split(',');
         for (let i = 0; i < 3; i++) {
-            const keyValArr = paramArrKeyVal[i].split(':');
+            const keyValArr = filterKeyValues[i].split(':');
             const filterValue = keyValArr[1];
             switch (i) {
                 case 0:
-                    filterObject.id = filterValue;
+                    filter.id = filterValue;
                 case 1:
-                    filterObject.condition = filterValue;
+                    filter.condition = filterValue;
                 case 2:
-                    filterObject.value = filterValue;
+                    filter.value = filterValue;
             }
         }
-        filterArray.push(filterObject);
+        filterTypeArray.push(filter);
     }
-    console.log('FILTER ARRAY: ', filterArray);
-    return filterArray;
+    return filterTypeArray;
 };
-exports.getFilterObjects = getFilterObjects;
+exports.getFilterTypes = getFilterTypes;
 const filterQuestions = (formInput, filters) => {
+    console.log('FILTER ARRAY: ', filters);
     const { responses } = formInput;
-    console.log('RESPONSES: ', responses);
-    // const serverResponses = {
-    //     "responses": []
-    // };
-    // const conditions = filters.map(f => f.condition);
-    // console.log('FILTER CONDITIONS: ', conditions);
-    // filters.forEach(f => {
-    //     console.log('FILRER CHANGED: ', f);
-    // });
-    // for (let f in filters) {
-    //     console.log('F: ', filters[f], 'FILTErS: ', filters);
-    // }
+    let serverResponse = (0, serverResponse_1.createEmptyServerResponse)();
+    // const questions = responses.questions;z
+    for (let response of responses) {
+        const questions = response.questions;
+        for (let question of questions) {
+            console.log('QUESTION: ', question);
+        }
+    }
     // for (let question of questions) {
     // let questionId = question.id;
     // console.log('QUESTION: ', question.id, question.name, question.type, question.options);

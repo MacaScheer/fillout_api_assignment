@@ -16,11 +16,11 @@ const options = {
 };
 router.get("/", (req, res) => {
     const filterParamValues = (new URLSearchParams(req.url.toString())).values();
-    const filterObjects = (0, filterUtil_1.getFilterObjects)(filterParamValues);
+    const filterTypes = (0, filterUtil_1.getFilterTypes)(filterParamValues);
     axios
         .request(options)
         .then(function ({ data }) {
-        const filteredResponses = (0, filterUtil_1.filterQuestions)(data, filterObjects);
+        const filteredResponses = (0, filterUtil_1.filterQuestions)(data, filterTypes);
         return res;
     })
         .catch(function (error) {
