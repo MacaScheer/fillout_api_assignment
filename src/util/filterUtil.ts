@@ -68,7 +68,6 @@ export const getFilterTypes = (paramValues: IterableIterator<string>) /*: Array<
 export const filterQuestions = (formInput: FormData, filters:
     Array<Filter>
     ) : (Array<QuestionResponse> | null) => {
-    console.log('FILTER ARRAY: ', filters);
     const { responses } = formInput;
     let serverResponse: ServerResponse = createEmptyServerResponse();
         const questions = responses[0].questions;
