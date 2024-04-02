@@ -1,13 +1,9 @@
 import { QuestionResponse } from "./questionResponse"
+import { ResponseData } from "./responseData";
 
 export type FormData = {
     "responses": [
-        {
-            "submissionId": string,
-            "submissionTime": string,
-            'lastUpdatedAt': string,
-            "questions":Array<QuestionResponse>,
-        },
+        ResponseData,
     ],
     "totalResponses": number,
     "pageCount": number,

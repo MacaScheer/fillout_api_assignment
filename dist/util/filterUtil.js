@@ -1,12 +1,28 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.filterQuestions = exports.getFilterTypes = exports.getFilterClausesArray = exports.separateFilterCluses = exports.getSingleFilterClause = void 0;
+exports.convertStringToDate = exports.filterQuestions = exports.filterResponses = exports.getFilterTypes = exports.getFilterClausesArray = exports.separateFilterCluses = exports.getSingleFilterClause = void 0;
 const filter_1 = require("../models/filter");
-const serverResponse_1 = require("../models/serverResponse");
 const getSingleFilterClause = (filterString) => {
     return filterString.slice(1, filterString.indexOf('}'));
 };
 exports.getSingleFilterClause = getSingleFilterClause;
+var FILTER_CONDITIONS;
+(function (FILTER_CONDITIONS) {
+    FILTER_CONDITIONS["EQUALS"] = "equals";
+    FILTER_CONDITIONS["DOES_NOT_EQUAL"] = "does_not_equals";
+    FILTER_CONDITIONS["GREATER_THAN"] = "greater_than";
+    FILTER_CONDITIONS["LESS_THAN"] = "less_than";
+})(FILTER_CONDITIONS || (FILTER_CONDITIONS = {}));
+var CONDITION_TYPE;
+(function (CONDITION_TYPE) {
+    CONDITION_TYPE["DATE_STRING"] = "DateString";
+    /* NOT USED */
+    CONDITION_TYPE["MULTIPLE_CHOICE"] = "MultipleChoice";
+    CONDITION_TYPE["EMAIL_INPUT"] = "EmailInput";
+    CONDITION_TYPE["SHORT_ANSWER"] = "ShortAnswer";
+    CONDITION_TYPE["NUMBER_INPUT"] = "NumberInput";
+    CONDITION_TYPE["LONG_ANSWER"] = "LongAnswer";
+})(CONDITION_TYPE || (CONDITION_TYPE = {}));
 const separateFilterCluses = (paramString) => {
     let filterArr = new Array();
     let i = 0;
@@ -46,8 +62,10 @@ const getFilterTypes = (paramValues) => {
             switch (i) {
                 case 0:
                     filter.id = filterValue;
+                    break;
                 case 1:
                     filter.condition = filterValue;
+                    break;
                 case 2:
                     filter.value = filterValue;
             }
@@ -57,26 +75,74 @@ const getFilterTypes = (paramValues) => {
     return filterTypeArray;
 };
 exports.getFilterTypes = getFilterTypes;
-const filterQuestions = (formInput, filters) => {
-    console.log('FILTER ARRAY: ', filters);
-    const { responses } = formInput;
-    let serverResponse = (0, serverResponse_1.createEmptyServerResponse)();
-    // const questions = responses.questions;z
-    for (let response of responses) {
-        const questions = response.questions;
+const filterResponses = (formInput, filters) => {
+    let questionGroups = new Array();
+    for (let questionGroup of formInput.responses) {
+        questionGroups.push((0, exports.filterQuestions)(questionGroup, filters));
+    }
+    return questionGroups;
+};
+exports.filterResponses = filterResponses;
+const filterQuestions = (questionGroup, filters) => {
+    const questions = questionGroup.questions;
+    for (let filter of filters) {
         for (let question of questions) {
             console.log('QUESTION: ', question);
+            // console.log('FILTER VALUE: ', filter.value, ' QUESTION VALUE: ', question.value);
+            if (filter.id === question.id) {
+                switch (filter.condition) {
+                    case FILTER_CONDITIONS.EQUALS:
+                        if (question.type === CONDITION_TYPE.DATE_STRING &&
+                            question.value !== null &&
+                            filter.value !== null &&
+                            (0, exports.convertStringToDate)(question.value) !== (0, exports.convertStringToDate)(filter.value.toString())) {
+                            return null;
+                        }
+                        else if (filter.value !== question.value) {
+                            return null;
+                        }
+                    case FILTER_CONDITIONS.DOES_NOT_EQUAL:
+                        if (question.type === CONDITION_TYPE.DATE_STRING &&
+                            question.value !== null &&
+                            filter.value !== null &&
+                            (0, exports.convertStringToDate)(question.value) === (0, exports.convertStringToDate)(filter.value.toString())) {
+                            return null;
+                        }
+                        else if (filter.value === question.value) {
+                            return null;
+                        }
+                    case FILTER_CONDITIONS.GREATER_THAN:
+                        console.log('GREATER THAN', filter.condition);
+                        if (question.type === CONDITION_TYPE.DATE_STRING &&
+                            question.value !== null &&
+                            filter.value !== null &&
+                            (0, exports.convertStringToDate)(question.value) >= (0, exports.convertStringToDate)(filter.value.toString())) {
+                            console.log('WILL RETURN NULL');
+                            return null;
+                        }
+                        else if (filter.value != null && question.value != null && filter.value < question.value) {
+                            return null;
+                        }
+                    case FILTER_CONDITIONS.LESS_THAN:
+                        if (question.type === CONDITION_TYPE.DATE_STRING &&
+                            question.value !== null &&
+                            filter.value !== null &&
+                            (0, exports.convertStringToDate)(question.value) <= (0, exports.convertStringToDate)(filter.value.toString())) {
+                            return null;
+                        }
+                        else if (filter.value != null && question.value != null && filter.value > question.value) {
+                            return null;
+                        }
+                }
+            }
+            else
+                return null;
         }
     }
-    // for (let question of questions) {
-    // let questionId = question.id;
-    // console.log('QUESTION: ', question.id, question.name, question.type, question.options);
-    //     switch (condition) {
-    //         case 'greater_than':
-    //         case 'less_than':
-    //         case 'equals':
-    //         case 'does_not_equal':
-    // }
-    // }
+    return questions;
 };
 exports.filterQuestions = filterQuestions;
+const convertStringToDate = (dateString) => {
+    return new Date(dateString);
+};
+exports.convertStringToDate = convertStringToDate;

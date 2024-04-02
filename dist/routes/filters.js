@@ -2,8 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const filterUtil_1 = require("../util/filterUtil");
-// import { parse } from 'url';
-// import { URLJSONEncode } from '../util/filterEncodingUtil';
 const axios = require('axios');
 const router = (0, express_1.Router)();
 const options = {
@@ -20,68 +18,13 @@ router.get("/", (req, res) => {
     axios
         .request(options)
         .then(function ({ data }) {
-        const filteredResponses = (0, filterUtil_1.filterQuestions)(data, filterTypes);
-        return res;
+        const filteredResponses = (0, filterUtil_1.filterResponses)(data, filterTypes);
+        if (filteredResponses != null) {
+            res.json({ responses: filteredResponses });
+        }
     })
         .catch(function (error) {
         console.error(error);
     });
 });
 exports.default = router;
-// console.log('REQ QUERY', query);
-// console.log('URL: ', req.url);
-// const filterArray = query.filters;// as Array<Filter>;
-// console.log('FILTER ARRAY: ', filterArray);
-// const { id, condition, value } = query;
-// const idString = id?.toString();
-// const conditionString = condition?.toString();
-// const valueString = value?.toString();
-// console.log('req.url', req.url); 
-// console.log('VALS: ', filterParams);
-// console.log('FILTER PARAMS: ', filterParams);
-// const entries = Object.entries(req.query);
-// const parsedURL = JSON.parse(req.url);
-// console.log('PARSED URL: ', parsedURL);
-// const values = Object.values(req.query)[0] as Array<string>;
-// const url = new URL(req.url);
-// const params = url.searchParams;
-// console.log('PARAMS: ', params);
-// for (let value of values) {
-// console.log('VALUE: ', value.toString());
-// }
-// console.log('ENTRIES: ', entries);
-// const filterJSON = [
-//     {
-//         id: "nameId",
-//         condition: "equals",
-//         value: "Timmy",
-//     },
-//     {
-//         id: "birthdayId",
-//         condition: "greater_than",
-//         value: "2024-02-23T05:01:47.691Z"
-//     }
-// ];
-// console.log('stringifiedJSON: ', stringifiedJSON);
-// console.log('StringifiedJSON: ', stringifiedJSON);
-// JSON.parse(req.url.toString(), (key, value) => {
-//     console.log('KEY: ', key, ' VALUE: ', value);
-// })
-// const json = JSON.parse(req.url, (key, value) => {
-//     console.log('PARSE KEY: ', key, ' PARSE VALUE: ', value);
-// })
-// for (let param of filterParams) {
-//     for (let i = 0; i < 3; i++){
-//         const paramEntries = param.split(',');
-//         for (let j = 0; j < 3; j++) {
-//             const paramVal = paramEntries[j].split(':')[1];
-//             // console.log('PARAM VALS: ', paramVal);
-//         }
-//     }
-// }
-// const entries = filterParams.entries();
-// const filterValues = filterParams.values();
-// let filters = [];
-// for (let filter of filterValues) {
-//     filters.push(filter.split(', '));
-// }

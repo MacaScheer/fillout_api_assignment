@@ -1,6 +1,5 @@
 import express from 'express';
 import filters from './routes/filters';
-// import { validateInput } from './validators/formValidator';
 const app = express();
 
 const PORT = 3000;

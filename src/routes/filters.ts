@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { FormData } from '../models/formData';
-import { filterQuestions, getFilterTypes } from '../util/filterUtil';
+import { filterResponses, getFilterTypes } from '../util/filterUtil';
+import { createEmptyServerResponse } from '../models/serverResponse';
 const axios = require('axios');
 const router = Router();
 const options = {
@@ -18,12 +19,13 @@ router.get("/", (req, res) => {
     axios
         .request(options)
         .then(function ({ data }: { data: FormData }) {
-            const filteredResponses = filterQuestions(
+            const filteredResponses = filterResponses(
                 data,
                 filterTypes,
             );
-                return res;
-                
+            if (filteredResponses != null) {
+                res.json({responses: filteredResponses})
+            }
             })
             .catch(function (error: any) {
                 console.error(error);
