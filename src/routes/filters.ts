@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { FormData } from '../models/formData';
 import { filterResponses, getFilterTypes } from '../util/filterUtil';
-import { createEmptyServerResponse } from '../models/serverResponse';
 const axios = require('axios');
 const router = Router();
 const options = {
@@ -13,22 +12,22 @@ const options = {
     },
 };
 
-router.get("/", (req, res) => {
-    const filterParamValues = (new URLSearchParams(req.url.toString())).values();
-    const filterTypes = getFilterTypes(filterParamValues);
-    axios
-        .request(options)
-        .then(function ({ data }: { data: FormData }) {
-            const filteredResponses = filterResponses(
-                data,
-                filterTypes,
-            );
-            if (filteredResponses != null) {
-                res.json({responses: filteredResponses})
-            }
+    router.get("/", (req, res) => {
+        const filterParamValues = (new URLSearchParams(req.url.toString())).values();
+        const filterTypes = getFilterTypes(filterParamValues);
+        axios
+            .request(options)
+            .then(function ({ data }: { data: FormData }) {
+                let filteredResponses = filterResponses(
+                    data,
+                    filterTypes,
+                );
+                if (filteredResponses != null) {
+                    res.json({ responses: filteredResponses })
+                }
             })
             .catch(function (error: any) {
                 console.error(error);
             });
-        })
-        export default router;
+    });
+export default router;

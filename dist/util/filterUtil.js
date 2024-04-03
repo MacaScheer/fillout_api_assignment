@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.convertStringToDate = exports.filterQuestions = exports.filterResponses = exports.getFilterTypes = exports.getFilterClausesArray = exports.separateFilterCluses = exports.getSingleFilterClause = void 0;
+exports.convertStringToDate = exports.filterQuestions = exports.findQuestionID = exports.filterResponses = exports.getFilterTypes = exports.getFilterClausesArray = exports.separateFilterCluses = exports.getSingleFilterClause = void 0;
 const filter_1 = require("../models/filter");
 const getSingleFilterClause = (filterString) => {
     return filterString.slice(1, filterString.indexOf('}'));
@@ -83,63 +83,118 @@ const filterResponses = (formInput, filters) => {
     return questionGroups;
 };
 exports.filterResponses = filterResponses;
+/*
+LOGIC:
+    ITERATE THRU FILTERS:
+        FILTER: ID MATCHES?
+            YES? ID/CONDITION/VALUE
+             ITERATE THRU QUESTIONS:
+                QUESTION:
+                    ID MATCHES?
+                        DOES VALUE + CONDITION MATCH?
+                            NO? RETURN NULL => NO QUESTIONS FROM GROUP
+                            YES? KEEP ITERATING, AT END, RETURN ALL QUESTIONS??????
+            NO? KEEP ITERATING
+
+            WHAT TO RETURN IF NO ID MATCHES? NOTHING
+*/
+// VALIDATE INPUTS HAVE NO QUOTES
+// export const areQuotesInStrings = (filterVal: string | null): Boolean => {
+//     if (filterVal == null) {
+//         return false;
+//     }
+//    return (filterVal.toString()[0] === "'" || filterVal.toString()[0] === '"') &&
+//         (filterVal.toString()[filterVal.toString().length - 1] === "'" ||
+//             filterVal[filterVal.length - 1] === '"')
+// }
+// export const trimQuotesInFilter = (filter: Filter): {id: string, condition: string, value: string} => {
+//     const trimmedFilter = {
+//         id: '',
+//         condition: '',
+//         value: '',
+//     };
+//     if (areQuotesInStrings(filter.id) && filter.id !== null) {    
+//         trimmedFilter.id = filter?.id?.toString().slice(1, filter.id.length - 1);
+//     }
+//     if (areQuotesInStrings(filter.condition) && filter.condition !== null) {
+//         trimmedFilter.condition = filter.condition.toString().slice(1, filter.condition.length - 1);
+//     }
+//     if (filter.value && areQuotesInStrings(filter.value?.toString()) && filter.value !== null) {
+//         trimmedFilter.value = filter.value.toString().slice(1, filter.value.length - 1);
+//     }
+// }
+const findQuestionID = ({ questions }, filterID) => {
+    const filteredQuestions = questions.filter(question => {
+        console.log('QUESTION.id', question.id, ' FILTER ID: ', filterID, ' EQUALS: ', question.id.toString() === filterID);
+        return question.id.toString() === filterID;
+    });
+    if (filteredQuestions.length > 0) {
+        return filteredQuestions;
+    }
+};
+exports.findQuestionID = findQuestionID;
 const filterQuestions = (questionGroup, filters) => {
-    const questions = questionGroup.questions;
+    let returnQuestions = new Array();
     for (let filter of filters) {
-        for (let question of questions) {
-            console.log('QUESTION: ', question);
-            // console.log('FILTER VALUE: ', filter.value, ' QUESTION VALUE: ', question.value);
-            if (filter.id === question.id) {
-                switch (filter.condition) {
-                    case FILTER_CONDITIONS.EQUALS:
-                        if (question.type === CONDITION_TYPE.DATE_STRING &&
-                            question.value !== null &&
-                            filter.value !== null &&
-                            (0, exports.convertStringToDate)(question.value) !== (0, exports.convertStringToDate)(filter.value.toString())) {
-                            return null;
+        if (filter.id != null) {
+            const matchingIDQuestions = (0, exports.findQuestionID)(questionGroup, filter.id);
+            if (matchingIDQuestions != undefined) {
+                returnQuestions.push(...matchingIDQuestions.map(question => {
+                    if (question != null && filter.id === question.id) {
+                        switch (filter.condition) {
+                            case FILTER_CONDITIONS.EQUALS:
+                                if (question.type === CONDITION_TYPE.DATE_STRING &&
+                                    question.value !== null &&
+                                    filter.value !== null &&
+                                    (0, exports.convertStringToDate)(question.value) === (0, exports.convertStringToDate)(filter.value.toString())) {
+                                    return question;
+                                }
+                                else if (filter.value === question.value) {
+                                    console.log('FILTER.VALUE: ', filter.value, ' QUESTION.VALUE: ', question.value);
+                                    return question;
+                                }
+                                break;
+                            case FILTER_CONDITIONS.DOES_NOT_EQUAL:
+                                if (question.type === CONDITION_TYPE.DATE_STRING &&
+                                    question.value !== null &&
+                                    filter.value !== null &&
+                                    (0, exports.convertStringToDate)(question.value) !== (0, exports.convertStringToDate)(filter.value.toString())) {
+                                    return question;
+                                }
+                                else if (filter.value !== question.value) {
+                                    return question;
+                                }
+                                break;
+                            case FILTER_CONDITIONS.GREATER_THAN:
+                                if (question.type === CONDITION_TYPE.DATE_STRING &&
+                                    question.value !== null &&
+                                    filter.value !== null &&
+                                    (0, exports.convertStringToDate)(question.value) < (0, exports.convertStringToDate)(filter.value.toString())) {
+                                    return question;
+                                }
+                                else if (filter.value != null && question.value != null && filter.value > question.value) {
+                                    return question;
+                                }
+                                break;
+                            case FILTER_CONDITIONS.LESS_THAN:
+                                if (question.type === CONDITION_TYPE.DATE_STRING &&
+                                    question.value !== null &&
+                                    filter.value !== null &&
+                                    (0, exports.convertStringToDate)(question.value) > (0, exports.convertStringToDate)(filter.value.toString())) {
+                                    return question;
+                                }
+                                else if (filter.value != null && question.value != null && filter.value < question.value) {
+                                    return question;
+                                }
                         }
-                        else if (filter.value !== question.value) {
-                            return null;
-                        }
-                    case FILTER_CONDITIONS.DOES_NOT_EQUAL:
-                        if (question.type === CONDITION_TYPE.DATE_STRING &&
-                            question.value !== null &&
-                            filter.value !== null &&
-                            (0, exports.convertStringToDate)(question.value) === (0, exports.convertStringToDate)(filter.value.toString())) {
-                            return null;
-                        }
-                        else if (filter.value === question.value) {
-                            return null;
-                        }
-                    case FILTER_CONDITIONS.GREATER_THAN:
-                        console.log('GREATER THAN', filter.condition);
-                        if (question.type === CONDITION_TYPE.DATE_STRING &&
-                            question.value !== null &&
-                            filter.value !== null &&
-                            (0, exports.convertStringToDate)(question.value) >= (0, exports.convertStringToDate)(filter.value.toString())) {
-                            console.log('WILL RETURN NULL');
-                            return null;
-                        }
-                        else if (filter.value != null && question.value != null && filter.value < question.value) {
-                            return null;
-                        }
-                    case FILTER_CONDITIONS.LESS_THAN:
-                        if (question.type === CONDITION_TYPE.DATE_STRING &&
-                            question.value !== null &&
-                            filter.value !== null &&
-                            (0, exports.convertStringToDate)(question.value) <= (0, exports.convertStringToDate)(filter.value.toString())) {
-                            return null;
-                        }
-                        else if (filter.value != null && question.value != null && filter.value > question.value) {
-                            return null;
-                        }
-                }
+                    }
+                }));
+                console.log('returnQuestions: ', returnQuestions);
             }
-            else
-                return null;
+            // .filter(val => val != undefined && val.length !== 0);
         }
     }
-    return questions;
+    return returnQuestions.filter(el => el != undefined);
 };
 exports.filterQuestions = filterQuestions;
 const convertStringToDate = (dateString) => {

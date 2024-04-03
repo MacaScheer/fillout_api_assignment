@@ -87,78 +87,80 @@ export const filterResponses = (formInput: FormData, filters:
     return questionGroups;
 }
 
-/*
-LOGIC: 
-    ITERATE THRU FILTERS:
-        FILTER:
-        ID MATCHES?
-            YES? ID/CONDITION/VALUE
-             ITERATE THRU QUESTIONS:
-                QUESTION:
-                    ID MATCHES?
-                        DOES VALUE + CONDITION MATCH?
-                            NO? RETURN NULL => NO QUESTIONS FROM GROUP
-                            YES? KEEP ITERATING, AT END, RETURN ALL QUESTIONS??????
-            NO? KEEP ITERATING
-*/
+export const findQuestionID = ({ questions }: ResponseData, filterID: string): Array<QuestionResponse> | undefined => {
+    const filteredQuestions = questions.filter(question => {
+        return question.id.toString() === filterID;
+    });
+    if (filteredQuestions.length > 0) {
+        return filteredQuestions;
+    }
+}
 
 export const filterQuestions = (questionGroup: ResponseData, filters:
     Array<Filter>
-): (Array<QuestionResponse> | null) => {
-    const questions = questionGroup.questions;
+): (Array<QuestionResponse | null>) => {
+    let returnQuestions = new Array();
     for (let filter of filters) {
-        for (let question of questions) {
-            if (filter.id === question.id) {
-                switch (filter.condition) {
-                    case FILTER_CONDITIONS.EQUALS:
-                        if (
-                            question.type === CONDITION_TYPE.DATE_STRING &&
-                            question.value !== null &&
-                            filter.value !== null &&
-                            convertStringToDate(question.value) !== convertStringToDate(filter.value.toString())
-                        ) {
-                            return null;
-                        } else if (filter.value !== question.value) {
-                            return null;
+        if (filter.id != null) {
+            const matchingIDQuestions = findQuestionID(questionGroup, filter.id);
+            if (matchingIDQuestions != undefined) {   
+                 returnQuestions.push(...matchingIDQuestions.map(question => {
+                    if (question != null && filter.id === question.id) {
+                        switch (filter.condition) {
+                            case FILTER_CONDITIONS.EQUALS:
+                                if (
+                                    question.type === CONDITION_TYPE.DATE_STRING &&
+                                    question.value !== null &&
+                                    filter.value !== null &&
+                                    convertStringToDate(question.value) === convertStringToDate(filter.value.toString())
+                                ) {
+                                    return question;
+                                } else if (filter.value === question.value) {
+                                    return question;
+                                }
+                                break;
+                            case FILTER_CONDITIONS.DOES_NOT_EQUAL:
+                                if (
+                                    question.type === CONDITION_TYPE.DATE_STRING &&
+                                    question.value !== null &&
+                                    filter.value !== null &&
+                                    convertStringToDate(question.value) !== convertStringToDate(filter.value.toString())
+                                ) {
+                                    return question;
+                                } else if (filter.value !== question.value) {
+                                    return question;
+                                }
+                                break;
+                            case FILTER_CONDITIONS.GREATER_THAN:
+                                if (
+                                    question.type === CONDITION_TYPE.DATE_STRING &&
+                                    question.value !== null &&
+                                    filter.value !== null &&
+                                    convertStringToDate(question.value) < convertStringToDate(filter.value.toString())
+                                ) {
+                                    return question;
+                                } else if (filter.value != null && question.value != null && filter.value > question.value) {
+                                    return question;
+                                }
+                                break;
+                            case FILTER_CONDITIONS.LESS_THAN:
+                                if (
+                                    question.type === CONDITION_TYPE.DATE_STRING &&
+                                    question.value !== null &&
+                                    filter.value !== null &&
+                                    convertStringToDate(question.value) > convertStringToDate(filter.value.toString())
+                                ) {
+                                    return question;
+                                } else if (filter.value != null && question.value != null && filter.value < question.value) {
+                                    return question;
+                                }
                         }
-                    case FILTER_CONDITIONS.DOES_NOT_EQUAL:
-                        if (
-                            question.type === CONDITION_TYPE.DATE_STRING &&
-                            question.value !== null &&
-                            filter.value !== null &&
-                            convertStringToDate(question.value) === convertStringToDate(filter.value.toString())
-                        ) {
-                            return null;
-                        } else if (filter.value === question.value) {
-                            return null;
-                        }
-                    case FILTER_CONDITIONS.GREATER_THAN:
-                        if (
-                            question.type === CONDITION_TYPE.DATE_STRING &&
-                            question.value !== null &&
-                            filter.value !== null &&
-                            convertStringToDate(question.value) >= convertStringToDate(filter.value.toString())
-                        ) {
-                            return null;
-                        } else if (filter.value != null && question.value != null && filter.value < question.value) {
-                            return null;
-                        }
-                    case FILTER_CONDITIONS.LESS_THAN:
-                        if (
-                            question.type === CONDITION_TYPE.DATE_STRING &&
-                            question.value !== null &&
-                            filter.value !== null &&
-                            convertStringToDate(question.value) <= convertStringToDate(filter.value.toString())
-                        ) {
-                            return null;
-                        } else if (filter.value != null && question.value != null && filter.value > question.value) {
-                            return null;
-                        }
-                }
-            } else return null;
-            }     
+                    }
+                }));
+            }
         }
-    return questions;
+    }
+    return returnQuestions.filter(el => el != undefined);
 }
 
 export const convertStringToDate = (dateString: string): Date => {
