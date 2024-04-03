@@ -18,8 +18,7 @@ router.get("/", (req, res) => {
     axios
         .request(options)
         .then(function ({ data }) {
-        let filteredResponses = (0, filterUtil_1.filterResponses)(data, filterTypes).filter(el => el != null);
-        console.log('FILTERED RESPONSES: ', filteredResponses);
+        let filteredResponses = (0, filterUtil_1.filterResponses)(data, filterTypes);
         if (filteredResponses != null) {
             res.json({ responses: filteredResponses });
         }

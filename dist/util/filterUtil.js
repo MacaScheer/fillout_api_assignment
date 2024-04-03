@@ -83,49 +83,8 @@ const filterResponses = (formInput, filters) => {
     return questionGroups;
 };
 exports.filterResponses = filterResponses;
-/*
-LOGIC:
-    ITERATE THRU FILTERS:
-        FILTER: ID MATCHES?
-            YES? ID/CONDITION/VALUE
-             ITERATE THRU QUESTIONS:
-                QUESTION:
-                    ID MATCHES?
-                        DOES VALUE + CONDITION MATCH?
-                            NO? RETURN NULL => NO QUESTIONS FROM GROUP
-                            YES? KEEP ITERATING, AT END, RETURN ALL QUESTIONS??????
-            NO? KEEP ITERATING
-
-            WHAT TO RETURN IF NO ID MATCHES? NOTHING
-*/
-// VALIDATE INPUTS HAVE NO QUOTES
-// export const areQuotesInStrings = (filterVal: string | null): Boolean => {
-//     if (filterVal == null) {
-//         return false;
-//     }
-//    return (filterVal.toString()[0] === "'" || filterVal.toString()[0] === '"') &&
-//         (filterVal.toString()[filterVal.toString().length - 1] === "'" ||
-//             filterVal[filterVal.length - 1] === '"')
-// }
-// export const trimQuotesInFilter = (filter: Filter): {id: string, condition: string, value: string} => {
-//     const trimmedFilter = {
-//         id: '',
-//         condition: '',
-//         value: '',
-//     };
-//     if (areQuotesInStrings(filter.id) && filter.id !== null) {    
-//         trimmedFilter.id = filter?.id?.toString().slice(1, filter.id.length - 1);
-//     }
-//     if (areQuotesInStrings(filter.condition) && filter.condition !== null) {
-//         trimmedFilter.condition = filter.condition.toString().slice(1, filter.condition.length - 1);
-//     }
-//     if (filter.value && areQuotesInStrings(filter.value?.toString()) && filter.value !== null) {
-//         trimmedFilter.value = filter.value.toString().slice(1, filter.value.length - 1);
-//     }
-// }
 const findQuestionID = ({ questions }, filterID) => {
     const filteredQuestions = questions.filter(question => {
-        console.log('QUESTION.id', question.id, ' FILTER ID: ', filterID, ' EQUALS: ', question.id.toString() === filterID);
         return question.id.toString() === filterID;
     });
     if (filteredQuestions.length > 0) {
@@ -150,7 +109,6 @@ const filterQuestions = (questionGroup, filters) => {
                                     return question;
                                 }
                                 else if (filter.value === question.value) {
-                                    console.log('FILTER.VALUE: ', filter.value, ' QUESTION.VALUE: ', question.value);
                                     return question;
                                 }
                                 break;
@@ -189,9 +147,7 @@ const filterQuestions = (questionGroup, filters) => {
                         }
                     }
                 }));
-                console.log('returnQuestions: ', returnQuestions);
             }
-            // .filter(val => val != undefined && val.length !== 0);
         }
     }
     return returnQuestions.filter(el => el != undefined);

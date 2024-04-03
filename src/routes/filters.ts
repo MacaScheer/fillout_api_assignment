@@ -1,15 +1,17 @@
 import { Router } from 'express';
 import { FormData } from '../models/formData';
 import { filterResponses, getFilterTypes } from '../util/filterUtil';
+import dotenv from 'dotenv';
+
+dotenv.config();
 const axios = require('axios');
 const router = Router();
+const apiKey = process.env.API_KEY;
 const options = {
     method: 'GET',
-    url: 'https://api.fillout.com/v1/api/forms/cLZojxk94ous/submissions',
+    url: `https://api.fillout.com/v1/api/forms/${process.env.FILE_ID}/submissions`,
     json: true,
-    headers: {
-        'Authorization': 'Bearer sk_prod_TfMbARhdgues5AuIosvvdAC9WsA5kXiZlW8HZPaRDlIbCpSpLsXBeZO7dCVZQwHAY3P4VSBPiiC33poZ1tdUj2ljOzdTCCOSpUZ_3912',
-    },
+    headers: apiKey,
 };
 
     router.get("/", (req, res) => {
