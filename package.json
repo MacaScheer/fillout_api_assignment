@@ -5,6 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "tsc && node dist/main.js",
+    "prod": "tsc && node dist/main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
