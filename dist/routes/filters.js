@@ -1,16 +1,20 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const filterUtil_1 = require("../util/filterUtil");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const axios = require('axios');
 const router = (0, express_1.Router)();
+const apiKey = process.env.API_KEY;
 const options = {
     method: 'GET',
-    url: 'https://api.fillout.com/v1/api/forms/cLZojxk94ous/submissions',
+    url: `https://api.fillout.com/v1/api/forms/${process.env.FILE_ID}/submissions`,
     json: true,
-    headers: {
-        'Authorization': 'Bearer sk_prod_TfMbARhdgues5AuIosvvdAC9WsA5kXiZlW8HZPaRDlIbCpSpLsXBeZO7dCVZQwHAY3P4VSBPiiC33poZ1tdUj2ljOzdTCCOSpUZ_3912',
-    },
+    headers: apiKey,
 };
 router.get("/", (req, res) => {
     const filterParamValues = (new URLSearchParams(req.url.toString())).values();
