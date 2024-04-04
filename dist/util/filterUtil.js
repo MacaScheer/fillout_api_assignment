@@ -135,7 +135,6 @@ const questionGroupPassesFilters = ({ questions }, filters) => {
                             filter.value >= questionValueString) {
                             return false;
                         }
-                        console.log('\nFILTER: ', filter.value, "\nQUESTION: ", questionValueString, "\nFILTER VALUe GREATER OR EQUAL TO QUESTION VALUE: ", filter.value >= questionValueString);
                         break;
                     case FILTER_CONDITIONS.LESS_THAN:
                         if (questionValueString != null &&
