@@ -107,8 +107,8 @@ export const questionGroupPassesFilters = ({ questions }: ResponseData, filters:
                 let questionValueString = question.value?.toString() == undefined ? null: question.value?.toString();
                     switch (filter.condition) {
                         case FILTER_CONDITIONS.EQUALS:
-                            if (question.value == null && filter.value == null) {
-                                break;
+                            if (question.value == null || filter.value == null) {
+                                return false;
                             }
                             if (
                                 questionValueString != null &&
