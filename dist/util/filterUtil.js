@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.convertStringToDate = exports.filterQuestions = exports.findQuestionID = exports.filterResponses = exports.getFilterTypes = exports.getFilterClausesArray = exports.separateFilterCluses = exports.getSingleFilterClause = void 0;
+exports.questionGroupPassesFilters = exports.doAnyOfQuestionIDsMatch = exports.filterResponses = exports.convertStringToDate = exports.getFilterClausesArray = exports.separateFilterCluses = exports.getFilterTypes = exports.getSingleFilterClause = void 0;
 const filter_1 = require("../models/filter");
 const getSingleFilterClause = (filterString) => {
     return filterString.slice(1, filterString.indexOf('}'));
@@ -9,20 +9,40 @@ exports.getSingleFilterClause = getSingleFilterClause;
 var FILTER_CONDITIONS;
 (function (FILTER_CONDITIONS) {
     FILTER_CONDITIONS["EQUALS"] = "equals";
-    FILTER_CONDITIONS["DOES_NOT_EQUAL"] = "does_not_equals";
+    FILTER_CONDITIONS["DOES_NOT_EQUAL"] = "does_not_equal";
     FILTER_CONDITIONS["GREATER_THAN"] = "greater_than";
     FILTER_CONDITIONS["LESS_THAN"] = "less_than";
 })(FILTER_CONDITIONS || (FILTER_CONDITIONS = {}));
-var CONDITION_TYPE;
-(function (CONDITION_TYPE) {
-    CONDITION_TYPE["DATE_STRING"] = "DateString";
-    /* NOT USED */
-    CONDITION_TYPE["MULTIPLE_CHOICE"] = "MultipleChoice";
-    CONDITION_TYPE["EMAIL_INPUT"] = "EmailInput";
-    CONDITION_TYPE["SHORT_ANSWER"] = "ShortAnswer";
-    CONDITION_TYPE["NUMBER_INPUT"] = "NumberInput";
-    CONDITION_TYPE["LONG_ANSWER"] = "LongAnswer";
-})(CONDITION_TYPE || (CONDITION_TYPE = {}));
+var QUESTION_RESPONSE_TYPE;
+(function (QUESTION_RESPONSE_TYPE) {
+    QUESTION_RESPONSE_TYPE["DATE_STRING"] = "DateString";
+    QUESTION_RESPONSE_TYPE["NUMBER_INPUT"] = "NumberInput";
+})(QUESTION_RESPONSE_TYPE || (QUESTION_RESPONSE_TYPE = {}));
+const getFilterTypes = (paramValues) => {
+    const filterTypeArray = new Array();
+    const filterStringArray = (0, exports.getFilterClausesArray)(paramValues);
+    for (let filterString of filterStringArray) {
+        const filter = (0, filter_1.createEmptyFilter)();
+        const filterKeyValues = filterString.split(',');
+        for (let i = 0; i < 3; i++) {
+            const keyValArr = filterKeyValues[i].split(':');
+            const filterValue = keyValArr[1].trimStart().trimEnd();
+            switch (i) {
+                case 0:
+                    filter.id = filterValue;
+                    break;
+                case 1:
+                    filter.condition = filterValue;
+                    break;
+                case 2:
+                    filter.value = filterValue;
+            }
+        }
+        filterTypeArray.push(filter);
+    }
+    return filterTypeArray;
+};
+exports.getFilterTypes = getFilterTypes;
 const separateFilterCluses = (paramString) => {
     let filterArr = new Array();
     let i = 0;
@@ -50,110 +70,88 @@ const getFilterClausesArray = (paramValues) => {
     return filterClauses;
 };
 exports.getFilterClausesArray = getFilterClausesArray;
-const getFilterTypes = (paramValues) => {
-    const filterTypeArray = new Array();
-    const filterStringArray = (0, exports.getFilterClausesArray)(paramValues);
-    for (let filterString of filterStringArray) {
-        const filter = (0, filter_1.createEmptyFilter)();
-        const filterKeyValues = filterString.split(',');
-        for (let i = 0; i < 3; i++) {
-            const keyValArr = filterKeyValues[i].split(':');
-            const filterValue = keyValArr[1];
-            switch (i) {
-                case 0:
-                    filter.id = filterValue;
-                    break;
-                case 1:
-                    filter.condition = filterValue;
-                    break;
-                case 2:
-                    filter.value = filterValue;
-            }
-        }
-        filterTypeArray.push(filter);
-    }
-    return filterTypeArray;
-};
-exports.getFilterTypes = getFilterTypes;
-const filterResponses = (formInput, filters) => {
-    let questionGroups = new Array();
-    for (let questionGroup of formInput.responses) {
-        questionGroups.push((0, exports.filterQuestions)(questionGroup, filters));
-    }
-    return questionGroups;
-};
-exports.filterResponses = filterResponses;
-const findQuestionID = ({ questions }, filterID) => {
-    const filteredQuestions = questions.filter(question => {
-        return question.id.toString() === filterID;
-    });
-    if (filteredQuestions.length > 0) {
-        return filteredQuestions;
-    }
-};
-exports.findQuestionID = findQuestionID;
-const filterQuestions = (questionGroup, filters) => {
-    let returnQuestions = new Array();
-    for (let filter of filters) {
-        if (filter.id != null) {
-            const matchingIDQuestions = (0, exports.findQuestionID)(questionGroup, filter.id);
-            if (matchingIDQuestions != undefined) {
-                returnQuestions.push(...matchingIDQuestions.map(question => {
-                    if (question != null && filter.id === question.id) {
-                        switch (filter.condition) {
-                            case FILTER_CONDITIONS.EQUALS:
-                                if (question.type === CONDITION_TYPE.DATE_STRING &&
-                                    question.value !== null &&
-                                    filter.value !== null &&
-                                    (0, exports.convertStringToDate)(question.value) === (0, exports.convertStringToDate)(filter.value.toString())) {
-                                    return question;
-                                }
-                                else if (filter.value === question.value) {
-                                    return question;
-                                }
-                                break;
-                            case FILTER_CONDITIONS.DOES_NOT_EQUAL:
-                                if (question.type === CONDITION_TYPE.DATE_STRING &&
-                                    question.value !== null &&
-                                    filter.value !== null &&
-                                    (0, exports.convertStringToDate)(question.value) !== (0, exports.convertStringToDate)(filter.value.toString())) {
-                                    return question;
-                                }
-                                else if (filter.value !== question.value) {
-                                    return question;
-                                }
-                                break;
-                            case FILTER_CONDITIONS.GREATER_THAN:
-                                if (question.type === CONDITION_TYPE.DATE_STRING &&
-                                    question.value !== null &&
-                                    filter.value !== null &&
-                                    (0, exports.convertStringToDate)(question.value) < (0, exports.convertStringToDate)(filter.value.toString())) {
-                                    return question;
-                                }
-                                else if (filter.value != null && question.value != null && filter.value > question.value) {
-                                    return question;
-                                }
-                                break;
-                            case FILTER_CONDITIONS.LESS_THAN:
-                                if (question.type === CONDITION_TYPE.DATE_STRING &&
-                                    question.value !== null &&
-                                    filter.value !== null &&
-                                    (0, exports.convertStringToDate)(question.value) > (0, exports.convertStringToDate)(filter.value.toString())) {
-                                    return question;
-                                }
-                                else if (filter.value != null && question.value != null && filter.value < question.value) {
-                                    return question;
-                                }
-                        }
-                    }
-                }));
-            }
-        }
-    }
-    return returnQuestions.filter(el => el != undefined);
-};
-exports.filterQuestions = filterQuestions;
 const convertStringToDate = (dateString) => {
     return new Date(dateString);
 };
 exports.convertStringToDate = convertStringToDate;
+const filterResponses = (formInput, filters) => {
+    let responses = formInput.responses;
+    let questionGroups = new Array();
+    for (let questionGroup of responses) {
+        if ((0, exports.doAnyOfQuestionIDsMatch)(questionGroup, filters) && (0, exports.questionGroupPassesFilters)(questionGroup, filters)) {
+            questionGroups.push(questionGroup);
+        }
+    }
+    return questionGroups;
+};
+exports.filterResponses = filterResponses;
+const doAnyOfQuestionIDsMatch = ({ questions }, filters) => {
+    for (let question of questions) {
+        for (let filter of filters) {
+            if (question != null && question.id.toString() === filter.id) {
+                return true;
+            }
+        }
+    }
+    return false;
+};
+exports.doAnyOfQuestionIDsMatch = doAnyOfQuestionIDsMatch;
+const questionGroupPassesFilters = ({ questions }, filters) => {
+    for (let question of questions) {
+        for (let filter of filters) {
+            if (question != null && question.id.toString() === filter.id) {
+                let questionValueString = question.value?.toString() == undefined ? null : question.value?.toString();
+                switch (filter.condition) {
+                    case FILTER_CONDITIONS.EQUALS:
+                        if (question.value == null && filter.value == null) {
+                            break;
+                        }
+                        if (questionValueString != null &&
+                            filter.value != null &&
+                            ((question.type === QUESTION_RESPONSE_TYPE.DATE_STRING &&
+                                (0, exports.convertStringToDate)(questionValueString) !== (0, exports.convertStringToDate)(filter.value.toString())) ||
+                                (question.type === QUESTION_RESPONSE_TYPE.NUMBER_INPUT && parseInt(filter.value, 10) !== parseInt(questionValueString, 10)) ||
+                                filter.value !== questionValueString)) {
+                            return false;
+                        }
+                        break;
+                    case FILTER_CONDITIONS.DOES_NOT_EQUAL:
+                        if (questionValueString != null &&
+                            filter.value != null &&
+                            ((question.type === QUESTION_RESPONSE_TYPE.DATE_STRING &&
+                                (0, exports.convertStringToDate)(questionValueString) === (0, exports.convertStringToDate)(filter.value.toString())) ||
+                                (question.type === QUESTION_RESPONSE_TYPE.NUMBER_INPUT && parseInt(filter.value, 10) === parseInt(questionValueString, 10)) ||
+                                filter.value === questionValueString)) {
+                            return false;
+                        }
+                        break;
+                    case FILTER_CONDITIONS.GREATER_THAN:
+                        if (questionValueString == null || filter.value == null || question.value == null) {
+                            return false;
+                        }
+                        if ((question.type === QUESTION_RESPONSE_TYPE.DATE_STRING &&
+                            (0, exports.convertStringToDate)(filter.value.toString()) >= (0, exports.convertStringToDate)(questionValueString)) ||
+                            (question.type === QUESTION_RESPONSE_TYPE.NUMBER_INPUT && parseInt(filter.value, 10) >= parseInt(questionValueString, 10)) ||
+                            filter.value >= questionValueString) {
+                            return false;
+                        }
+                        console.log('\nFILTER: ', filter.value, "\nQUESTION: ", questionValueString, "\nFILTER VALUe GREATER OR EQUAL TO QUESTION VALUE: ", filter.value >= questionValueString);
+                        break;
+                    case FILTER_CONDITIONS.LESS_THAN:
+                        if (questionValueString != null &&
+                            question.value != null &&
+                            filter.value != null &&
+                            ((question.type === QUESTION_RESPONSE_TYPE.DATE_STRING &&
+                                (0, exports.convertStringToDate)(filter.value.toString()) <= (0, exports.convertStringToDate)(questionValueString)) ||
+                                (question.type === QUESTION_RESPONSE_TYPE.NUMBER_INPUT && parseInt(filter.value, 10) <= parseInt(questionValueString, 10)) ||
+                                filter.value <= questionValueString)) {
+                            return false;
+                        }
+                        break;
+                }
+            }
+        }
+    }
+    return true;
+};
+exports.questionGroupPassesFilters = questionGroupPassesFilters;

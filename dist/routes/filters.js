@@ -14,10 +14,12 @@ const options = {
     method: 'GET',
     url: `https://api.fillout.com/v1/api/forms/${process.env.FILE_ID}/submissions`,
     json: true,
-    headers: apiKey,
+    headers: {
+        'Authorization': apiKey,
+    },
 };
 router.get("/", (req, res) => {
-    const filterParamValues = (new URLSearchParams(req.url.toString())).values();
+    const filterParamValues = (new URLSearchParams(req.url)).values();
     const filterTypes = (0, filterUtil_1.getFilterTypes)(filterParamValues);
     axios
         .request(options)

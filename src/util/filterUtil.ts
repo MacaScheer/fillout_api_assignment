@@ -9,19 +9,39 @@ export const getSingleFilterClause = (filterString: string): string => {
 
 enum FILTER_CONDITIONS {
     EQUALS ='equals',
-    DOES_NOT_EQUAL = 'does_not_equals',
+    DOES_NOT_EQUAL = 'does_not_equal',
     GREATER_THAN = 'greater_than',
     LESS_THAN = 'less_than',
 }
 
-enum CONDITION_TYPE {
+enum QUESTION_RESPONSE_TYPE {
     DATE_STRING = 'DateString',
-    /* NOT USED */
-    MULTIPLE_CHOICE = 'MultipleChoice',
-    EMAIL_INPUT = 'EmailInput',
-    SHORT_ANSWER = 'ShortAnswer',
     NUMBER_INPUT = 'NumberInput',
-    LONG_ANSWER = 'LongAnswer',
+}
+
+export const getFilterTypes = (paramValues: IterableIterator<string>) => {
+    const filterTypeArray = new Array();
+    const filterStringArray = getFilterClausesArray(paramValues);
+    for (let filterString of filterStringArray) {
+        const filter = createEmptyFilter();
+        const filterKeyValues = filterString.split(',');
+        for (let i = 0; i < 3; i++) {
+            const keyValArr = filterKeyValues[i].split(':');
+            const filterValue = (keyValArr[1] as string).trimStart().trimEnd();
+                switch (i) {
+                    case 0:
+                        filter.id = filterValue as string;
+                        break;
+                    case 1:
+                        filter.condition = filterValue as string;
+                        break;
+                        case 2:
+                            filter.value = filterValue;
+                    }
+        }
+        filterTypeArray.push(filter);
+    }
+    return filterTypeArray;
 }
 
 export const separateFilterCluses = (paramString: string): Array<string | null> => {
@@ -48,121 +68,112 @@ export const getFilterClausesArray = (paramValues: IterableIterator<string>) => 
             filterClauses.push(clause);
         }
     }
-
     return filterClauses;
 }
 
-export const getFilterTypes = (paramValues: IterableIterator<string>) => {
-    const filterTypeArray = new Array();
-    const filterStringArray = getFilterClausesArray(paramValues);
-    for (let filterString of filterStringArray) {
-        const filter = createEmptyFilter();
-        const filterKeyValues = filterString.split(',');
-        for (let i = 0; i < 3; i++) {
-            const keyValArr = filterKeyValues[i].split(':');
-            const filterValue = keyValArr[1] as string;
-                switch (i) {
-                    case 0:
-                        filter.id = filterValue;
-                        break;
-                    case 1:
-                        filter.condition = filterValue;
-                        break;
-                        case 2:
-                            filter.value = filterValue;
-                    }
-        }
-        filterTypeArray.push(filter);
-    }
-    return filterTypeArray;
+
+export const convertStringToDate = (dateString: string): Date => {
+    return new Date(dateString);
 }
 
 export const filterResponses = (formInput: FormData, filters:
     Array<Filter>
 ): (Array<QuestionResponse | null>) => { 
+    let responses = formInput.responses;
     let questionGroups = new Array();
-    for (let questionGroup of formInput.responses) {
-        questionGroups.push(filterQuestions(questionGroup, filters));
+    for (let questionGroup of responses) {
+        if (doAnyOfQuestionIDsMatch(questionGroup, filters) && questionGroupPassesFilters(questionGroup, filters)) {
+            questionGroups.push(questionGroup);
+        }
     }
     return questionGroups;
 }
 
-export const findQuestionID = ({ questions }: ResponseData, filterID: string): Array<QuestionResponse> | undefined => {
-    const filteredQuestions = questions.filter(question => {
-        return question.id.toString() === filterID;
-    });
-    if (filteredQuestions.length > 0) {
-        return filteredQuestions;
-    }
-}
-
-export const filterQuestions = (questionGroup: ResponseData, filters:
-    Array<Filter>
-): (Array<QuestionResponse | null>) => {
-    let returnQuestions = new Array();
-    for (let filter of filters) {
-        if (filter.id != null) {
-            const matchingIDQuestions = findQuestionID(questionGroup, filter.id);
-            if (matchingIDQuestions != undefined) {   
-                 returnQuestions.push(...matchingIDQuestions.map(question => {
-                    if (question != null && filter.id === question.id) {
-                        switch (filter.condition) {
-                            case FILTER_CONDITIONS.EQUALS:
-                                if (
-                                    question.type === CONDITION_TYPE.DATE_STRING &&
-                                    question.value !== null &&
-                                    filter.value !== null &&
-                                    convertStringToDate(question.value) === convertStringToDate(filter.value.toString())
-                                ) {
-                                    return question;
-                                } else if (filter.value === question.value) {
-                                    return question;
-                                }
-                                break;
-                            case FILTER_CONDITIONS.DOES_NOT_EQUAL:
-                                if (
-                                    question.type === CONDITION_TYPE.DATE_STRING &&
-                                    question.value !== null &&
-                                    filter.value !== null &&
-                                    convertStringToDate(question.value) !== convertStringToDate(filter.value.toString())
-                                ) {
-                                    return question;
-                                } else if (filter.value !== question.value) {
-                                    return question;
-                                }
-                                break;
-                            case FILTER_CONDITIONS.GREATER_THAN:
-                                if (
-                                    question.type === CONDITION_TYPE.DATE_STRING &&
-                                    question.value !== null &&
-                                    filter.value !== null &&
-                                    convertStringToDate(question.value) < convertStringToDate(filter.value.toString())
-                                ) {
-                                    return question;
-                                } else if (filter.value != null && question.value != null && filter.value > question.value) {
-                                    return question;
-                                }
-                                break;
-                            case FILTER_CONDITIONS.LESS_THAN:
-                                if (
-                                    question.type === CONDITION_TYPE.DATE_STRING &&
-                                    question.value !== null &&
-                                    filter.value !== null &&
-                                    convertStringToDate(question.value) > convertStringToDate(filter.value.toString())
-                                ) {
-                                    return question;
-                                } else if (filter.value != null && question.value != null && filter.value < question.value) {
-                                    return question;
-                                }
-                        }
-                    }
-                }));
+export const doAnyOfQuestionIDsMatch = ({ questions }: ResponseData, filters: Array<Filter>): Boolean => {
+    for (let question of questions) {
+        for (let filter of filters) {
+            if (question != null && question.id.toString() === filter.id) {
+                return true;
             }
         }
     }
-    return returnQuestions.filter(el => el != undefined);
+    return false;
 }
 
-export const convertStringToDate = (dateString: string): Date => {
-    return new Date(dateString);
+export const questionGroupPassesFilters = ({ questions }: ResponseData, filters: Array<Filter>): Boolean => {
+    for (let question of questions) {
+        for (let filter of filters) {
+            if (question != null && question.id.toString() === filter.id) {
+                let questionValueString = question.value?.toString() == undefined ? null: question.value?.toString();
+                    switch (filter.condition) {
+                        case FILTER_CONDITIONS.EQUALS:
+                            if (question.value == null && filter.value == null) {
+                                break;
+                            }
+                            if (
+                                questionValueString != null &&
+                                filter.value != null &&
+                                (
+                                    (question.type === QUESTION_RESPONSE_TYPE.DATE_STRING &&
+                                        convertStringToDate(questionValueString) !== convertStringToDate(filter.value.toString())
+                                    ) ||
+                                (question.type === QUESTION_RESPONSE_TYPE.NUMBER_INPUT && parseInt(filter.value, 10) !== parseInt(questionValueString, 10)) ||
+                                    filter.value !== questionValueString
+                                )
+                            ) {
+                                return false;
+                            }
+                            break;    
+                        case FILTER_CONDITIONS.DOES_NOT_EQUAL:
+                            if (
+                                questionValueString != null &&
+                                filter.value != null &&
+                                (
+                                    (question.type === QUESTION_RESPONSE_TYPE.DATE_STRING &&
+                                        convertStringToDate(questionValueString) === convertStringToDate(filter.value.toString())
+                                    ) ||
+                                (question.type === QUESTION_RESPONSE_TYPE.NUMBER_INPUT && parseInt(filter.value, 10) === parseInt(questionValueString, 10)) ||
+                                    filter.value === questionValueString
+                                )
+                            ) {
+                                return false;
+                            }
+                            break;
+                        case FILTER_CONDITIONS.GREATER_THAN:
+                            if (questionValueString == null || filter.value == null || question.value == null) {
+                                return false;
+                            }
+                            if (
+                               
+                                    (question.type === QUESTION_RESPONSE_TYPE.DATE_STRING &&
+                                       convertStringToDate(filter.value.toString()) >= convertStringToDate(questionValueString)
+                                    ) ||
+                                (question.type === QUESTION_RESPONSE_TYPE.NUMBER_INPUT && parseInt(filter.value, 10) >= parseInt(questionValueString, 10)) ||
+                                    filter.value >= questionValueString
+                                
+                            ) {
+                                return false;
+                            }
+                            break;
+                        case FILTER_CONDITIONS.LESS_THAN:
+                            if (
+                                questionValueString != null &&
+                                question.value != null &&
+                                filter.value != null &&
+                                (
+                                    (question.type === QUESTION_RESPONSE_TYPE.DATE_STRING &&
+                                       convertStringToDate(filter.value.toString()) <= convertStringToDate(questionValueString)
+                                    ) ||
+                                (question.type === QUESTION_RESPONSE_TYPE.NUMBER_INPUT && parseInt(filter.value, 10) <= parseInt(questionValueString, 10)) ||
+                                    filter.value <= questionValueString
+                                )
+                            ) {
+                                return false;
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+    return true;
 }

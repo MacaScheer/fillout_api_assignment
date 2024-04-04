@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { FormData } from '../models/formData';
-import { filterResponses, getFilterTypes } from '../util/filterUtil';
+import { doAnyOfQuestionIDsMatch, filterResponses, getFilterTypes } from '../util/filterUtil';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -11,11 +11,13 @@ const options = {
     method: 'GET',
     url: `https://api.fillout.com/v1/api/forms/${process.env.FILE_ID}/submissions`,
     json: true,
-    headers: apiKey,
+    headers: {
+        'Authorization': apiKey,
+    },
 };
 
     router.get("/", (req, res) => {
-        const filterParamValues = (new URLSearchParams(req.url.toString())).values();
+        const filterParamValues = (new URLSearchParams(req.url)).values();
         const filterTypes = getFilterTypes(filterParamValues);
         axios
             .request(options)

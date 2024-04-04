@@ -1,7 +1,7 @@
 export type Filter = {
     id: string | null;
     condition: string | null;
-    value: number | string | null;
+    value: string | null;
 }
 
 
