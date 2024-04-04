@@ -4,7 +4,10 @@ import { config } from 'dotenv';
 
 const app = express();
 const port = process.env.PORT;
-app.get('/', filters);
+app.get('/', (req, res) => {
+    res.send("<h1>HELLO FROM RAILWAY</h1>");
+});
+// app.get('/', filters);
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
