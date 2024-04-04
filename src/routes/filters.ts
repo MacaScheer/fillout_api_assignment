@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { FormData } from '../models/formData';
-import { doAnyOfQuestionIDsMatch, filterResponses, getFilterTypes } from '../util/filterUtil';
-import dotenv from 'dotenv';
+import {filterResponses, getFilterTypes } from '../util/filterUtil';
+import {config} from 'dotenv';
 
-dotenv.config();
+config();
 const axios = require('axios');
 const router = Router();
 const apiKey = process.env.API_KEY;
