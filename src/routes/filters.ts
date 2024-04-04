@@ -12,7 +12,7 @@ const options = {
     url: `https://api.fillout.com/v1/api/forms/${process.env.FILE_ID}/submissions`,
     json: true,
     headers: {
-        'Authorization': apiKey,
+        apiKey,
     },
 };
 
