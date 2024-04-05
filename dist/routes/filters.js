@@ -17,12 +17,15 @@ const options = {
 };
 router.get("/", (req, res) => {
     const filterParamValues = (new URLSearchParams(req.url)).values();
+    console.log('FILTER PARAM VALUEs: ', filterParamValues);
     const filterTypes = (0, filterUtil_1.getFilterTypes)(filterParamValues);
     axios
         .request(options)
         .then(function ({ data }) {
-        let response = data.responses[0];
-        console.log('RESPONSE', response);
+        console.log('FILTER TYPEs: ', filterTypes);
+        if (filterTypes.length === 0) {
+            res.json({ responses: data });
+        }
         let filteredResponses = (0, filterUtil_1.filterResponses)(data, filterTypes);
         if (filteredResponses != null) {
             res.json({ responses: filteredResponses });

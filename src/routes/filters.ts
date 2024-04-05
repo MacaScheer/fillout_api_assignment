@@ -15,13 +15,15 @@ const options = {
         'Authorization': apiKey,
     }
 };
-
     router.get("/", (req, res) => {
-        const filterParamValues = (new URLSearchParams(req.url)).values();
+        const filterParamValues = (new URLSearchParams(req.url)).values();        
         const filterTypes = getFilterTypes(filterParamValues);
         axios
             .request(options)
             .then(function ({ data }: { data: FormData }) {
+                if (filterTypes.length === 0) {
+                    res.json({responses: data});
+                }
                 let filteredResponses = filterResponses(
                     data,
                     filterTypes,
@@ -34,4 +36,5 @@ const options = {
                 console.error(error);
             });
     });
+
 export default router;
