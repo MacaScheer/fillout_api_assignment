@@ -36,3 +36,7 @@ https://filloutapiassignment-production.up.railway.app/?filters={id:fFnyxwWa3KV6
 
 to add another filter, simply add a comma at the end and add another json object, i.e. `{id:...,condition:...,value:...}`
 
+## Filter Functionality / Expected Behavior
+The API is intended to return all of a form's questions/responses if their questions/responses pass all of the filters.
+So questions/responses of a form may be returned if their IDs are not matched in the filter, but others from the form are.
+
