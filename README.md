@@ -40,3 +40,101 @@ to add another filter, simply add a comma at the end and add another json object
 The API is intended to return all of a form's questions/responses if their questions/responses pass all of the filters.
 So questions/responses of a form may be returned if their IDs are not matched in the filter, but others from the form are.
 
+## Test API Yourself:
+Here is some sample test data from the Fillout API, which you can use to test the filters:
+```
+{
+  submissionId: 'ec42f74a-198a-4a8c-a72b-266501d1bce8',
+  submissionTime: '2024-03-26T03:05:55.967Z',
+  lastUpdatedAt: '2024-03-26T03:05:55.967Z',
+  questions: [
+    {
+      id: 'bE2Bo4cGUv49cjnqZ4UnkW',
+      name: 'What is your name?',
+      type: 'ShortAnswer',
+      value: 'Demo'
+    },
+    {
+      id: 'kc6S6ThWu3cT5PVZkwKUg4',
+      name: 'What is your email?',
+      type: 'EmailInput',
+      value: 'demoRecruiting@fillout.com'
+    },
+    {
+      id: 'jB2qDRcXQ8Pjo1kg3jre2J',
+      name: 'Which department do you work in?',
+      type: 'MultipleChoice',
+      value: 'Recruiting'
+    },
+    {
+      id: 'fFnyxwWa3KV6nBdfBDCHEA',
+      name: 'How many employees work under you?',
+      type: 'NumberInput',
+      value: 525
+    },
+    {
+      id: 'dSRAe3hygqVwTpPK69p5td',
+      name: 'Please select a date to schedule your yearly check-in.',
+      type: 'DatePicker',
+      value: '2024-03-25'
+    },
+    {
+      id: '4KC356y4M6W8jHPKx9QfEy',
+      name: "Anything else you'd like to share before your call?",
+      type: 'LongAnswer',
+      value: null
+    }
+  ],
+  calculations: [],
+  urlParameters: [],
+  quiz: {},
+  documents: []
+}
+{
+  submissionId: 'd9fbf314-8331-4ebf-bb6a-ccbd8c592b16',
+  submissionTime: '2024-03-26T03:07:33.815Z',
+  lastUpdatedAt: '2024-03-26T03:07:33.815Z',
+  questions: [
+    {
+      id: 'bE2Bo4cGUv49cjnqZ4UnkW',
+      name: 'What is your name?',
+      type: 'ShortAnswer',
+      value: 'Demo'
+    },
+    {
+      id: 'kc6S6ThWu3cT5PVZkwKUg4',
+      name: 'What is your email?',
+      type: 'EmailInput',
+      value: 'demoHR@fillout.com'
+    },
+    {
+      id: 'jB2qDRcXQ8Pjo1kg3jre2J',
+      name: 'Which department do you work in?',
+      type: 'MultipleChoice',
+      value: null
+    },
+    {
+      id: 'fFnyxwWa3KV6nBdfBDCHEA',
+      name: 'How many employees work under you?',
+      type: 'NumberInput',
+      value: 222
+    },
+    {
+      id: 'dSRAe3hygqVwTpPK69p5td',
+      name: 'Please select a date to schedule your yearly check-in.',
+      type: 'DatePicker',
+      value: '2024-03-25'
+    },
+    {
+      id: '4KC356y4M6W8jHPKx9QfEy',
+      name: "Anything else you'd like to share before your call?",
+      type: 'LongAnswer',
+      value: 'N/a'
+    }
+  ],
+  calculations: [],
+  urlParameters: [],
+  quiz: {},
+  documents: []
+}
+```
