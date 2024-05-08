@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { FormData } from '../models/formData';
-import {filterResponses, getFilterTypes } from '../util/filterUtil';
 import {config} from 'dotenv';
+import { URLFormFilter } from '../util/URLFormFilter';
 
 config();
 const axios = require('axios');
@@ -15,20 +15,17 @@ const options = {
         'Authorization': apiKey,
     }
 };
-    router.get("/", (req, res) => {
-        const filterParamValues = (new URLSearchParams(req.url)).values();        
-        const filterTypes = getFilterTypes(filterParamValues);
-        axios
-            .request(options)
-            .then(function ({ data }: { data: FormData }) {
-                if (filterTypes.length === 0) {
-                    res.json({responses: data});
-                }
-                let filteredResponses = filterResponses(
-                    data,
-                    filterTypes,
-                );
-                if (filteredResponses != null) {
+router.get("/", (req, res) => {
+    axios
+    .request(options)
+    .then(function ({ data }: { data: FormData }) {
+        const urlFormFilter = new URLFormFilter(req.url, data);
+        const filterTypes = urlFormFilter.getFilterTypes();
+        if (filterTypes.length === 0) {
+            res.json({responses: data});
+        }
+        const filteredResponses = urlFormFilter.filterResponses(filterTypes);
+        if (filteredResponses != null) {
                     res.json({ responses: filteredResponses })
                 }
             })

@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.QUESTION_RESPONSE_TYPE = exports.FILTER_CONDITIONS = void 0;
+var FILTER_CONDITIONS;
+(function (FILTER_CONDITIONS) {
+    FILTER_CONDITIONS["EQUALS"] = "equals";
+    FILTER_CONDITIONS["DOES_NOT_EQUAL"] = "does_not_equal";
+    FILTER_CONDITIONS["GREATER_THAN"] = "greater_than";
+    FILTER_CONDITIONS["LESS_THAN"] = "less_than";
+})(FILTER_CONDITIONS || (exports.FILTER_CONDITIONS = FILTER_CONDITIONS = {}));
+var QUESTION_RESPONSE_TYPE;
+(function (QUESTION_RESPONSE_TYPE) {
+    QUESTION_RESPONSE_TYPE["DATE_STRING"] = "DateString";
+    QUESTION_RESPONSE_TYPE["NUMBER_INPUT"] = "NumberInput";
+})(QUESTION_RESPONSE_TYPE || (exports.QUESTION_RESPONSE_TYPE = QUESTION_RESPONSE_TYPE = {}));
