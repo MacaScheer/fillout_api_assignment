@@ -1,7 +1,7 @@
 # Context:
 This is a takehome assignement for Fillout.com
 This API, hosted by railway, will hit a test API endpoint hosted by Fillout.com, getting access to test data and returning a group of form response objects.
-Each object contains a groups of questions and answers, as well as other data.
+Each object contains groups of questions and answers, as well as other data.
 Each group of questions corresponds to a separate form, filled out by a hypothetical user.
 
 # API
